@@ -48,22 +48,60 @@ def getTree():
     finally:
         connection.close()
 
-def serialize_categoria(categoria):
-    if isinstance(categoria, Categoria):
-        # Crear una copia de la categoría para no modificar la original
-        serialized_categoria = {
-            'id': categoria.id,
-            'nombre': categoria.nombre,
-            'padre_id': categoria.padre_id,
-            'subcategorias': [serialize_categoria(subcategoria) for subcategoria in categoria.subcategorias]
-        }
+def serialize_categoria(categorias):
+    # Crear un diccionario para mapear categorías por su ID
+    categoria_dict = {categoria['id']: categoria for categoria in categorias}
 
-        # Convertir el precio a flotante si es un Decimal
-        if isinstance(categoria.precio, Decimal):
-            serialized_categoria['precio'] = float(categoria.precio)
+    # Inicializar una lista de categorías raíz
+    root_categorias = []
+
+    # Iterar a través de las categorías para construir la estructura de árbol
+    for categoria in categorias:
+        if categoria['padre_id'] is None:
+            # Esta es una categoría raíz
+            root_categorias.append(categoria)
         else:
-            serialized_categoria['precio'] = categoria.precio
+            # Esta es una subcategoría, agreguémosla a su padre correspondiente
+            parent_categoria = categoria_dict.get(categoria['padre_id'])
+            if parent_categoria is not None:
+                if 'subcategorias' not in parent_categoria:
+                    parent_categoria['subcategorias'] = []
+                parent_categoria['subcategorias'].append(categoria)
 
-        return serialized_categoria
+    return root_categorias
 
-    return categoria
+
+
+def convert_to_tree_data(categorias):
+    # Crear un diccionario para mapear categorías por su ID
+    categoria_dict = {categoria.id: categoria for categoria in categorias}
+
+    # Inicializar una lista de categorías raíz
+    root_categorias = []
+
+    # Iterar a través de las categorías para construir la estructura de árbol
+    for categoria in categorias:
+        if categoria.padre_id is None:
+            # Esta es una categoría raíz
+            root_categorias.append(categoria)
+        else:
+            # Esta es una subcategoría, agreguémosla a su padre correspondiente
+            parent_categoria = categoria_dict.get(categoria.padre_id)
+            if parent_categoria is not None:
+                if not hasattr(parent_categoria, 'subcategorias'):
+                    parent_categoria.subcategorias = []
+                parent_categoria.subcategorias.append(categoria)
+
+    # Convertir la estructura en el formato deseado
+    def to_tree_format(categoria):
+        tree_categoria = {'name': categoria.nombre}
+        if categoria.precio is not None:
+            tree_categoria['price'] = float(categoria.precio)
+        if hasattr(categoria, 'subcategorias'):
+            tree_categoria['children'] = [to_tree_format(subcategoria) for subcategoria in categoria.subcategorias]
+        return tree_categoria
+
+    # Obtener la estructura de datos en el formato deseado
+    tree_data = [to_tree_format(categoria) for categoria in root_categorias]
+
+    return tree_data
