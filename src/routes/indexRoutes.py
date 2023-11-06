@@ -26,7 +26,6 @@ def index_delete(id):
     return jsonify({'message': result})
 
 
-
 @main.route('/add', methods=['POST'])
 def index_add():
     data = request.get_json()
