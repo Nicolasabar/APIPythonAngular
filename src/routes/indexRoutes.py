@@ -36,6 +36,7 @@ def index_add():
     return jsonify({'message': result})
 
 
+# Actualizar datos de nombre y rpecio validando id
 @main.route('/update', methods=['PUT'])
 def index_update():
 
