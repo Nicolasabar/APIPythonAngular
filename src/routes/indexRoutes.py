@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from ..models import categoria, categoria_delete, categoria_add
+from ..models import categoria, categoria_delete, categoria_add, categoria_update
 from flask_cors import CORS
 from flask import request
 
@@ -34,3 +34,27 @@ def index_add():
     id_padre = data.get('id_padre')
     result = categoria_add.add_category(nombre, precio, id_padre)
     return jsonify({'message': result})
+
+
+@main.route('/update', methods=['PUT'])
+def index_update():
+
+    try:
+
+        data = request.get_json()
+
+        if 'id' not in data or 'nombre' not in data or 'precio' not in data:
+            raise ValueError("Los datos de entrada no son validos.")
+        
+        id_update = data['id']
+        nombre = data['nombre']
+        precio = data['precio']
+
+        result = categoria_update.update_category(id_update, nombre, precio)
+        return jsonify({'message': result})
+    
+    except ValueError as ve:
+        return jsonify({'error': str(ve)}), 400  # Código de estado 400 para solicitud incorrecta
+
+    except Exception as e:
+        return jsonify({'error': f'Error en la actualización: {str(e)}'}), 500  # Código de estado 500 para error interno del servidor
