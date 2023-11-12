@@ -23,7 +23,13 @@ def index():
 @main.route('/delete/<int:id>', methods=['DELETE'])
 def index_delete(id):
     result = categoria_delete.delete_category(id)
-    return jsonify({'message': result})
+    
+    if 'No se puede eliminar, el elemento tiene hijos asociados.' in result:
+        # Si hay hijos asociados, devolver un código de estado 400 (Bad Request)
+        return jsonify({'error': result}), 400
+    else:
+        # Si la eliminación fue exitosa, devolver un código de estado 200 (OK)
+        return jsonify({'message': result}), 200
 
 
 @main.route('/add', methods=['POST'])
